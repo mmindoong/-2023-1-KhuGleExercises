@@ -1,0 +1,13 @@
+﻿  KhuGleBase.cpp
+  KhuGleComponent.cpp
+  KhuGleLayer.cpp
+  KhuGleScene.cpp
+  KhuGleSprite.cpp
+  KhuGleWin.cpp
+E:\Github\KhuGleExercises\03. KhuGle(Collision and Physics)\KhuGle\KhuGleWin.cpp(352,80): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+E:\Github\KhuGleExercises\03. KhuGle(Collision and Physics)\KhuGle\KhuGleWin.cpp(370,66): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+E:\Github\KhuGleExercises\03. KhuGle(Collision and Physics)\KhuGle\KhuGleWin.cpp(414,52): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+E:\Github\KhuGleExercises\03. KhuGle(Collision and Physics)\KhuGle\KhuGleWin.cpp(526,12): warning C4244: 'return': conversion from 'WPARAM' to 'int', possible loss of data
+  Main.cpp
+  Generating Code...
+  KhuGle.vcxproj -> E:\Github\KhuGleExercises\03. KhuGle(Collision and Physics)\x64\Debug\KhuGle.exe
