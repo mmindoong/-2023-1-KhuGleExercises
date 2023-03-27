@@ -12,13 +12,13 @@
 ## Projects
 * 01 KhuGle(Windows Api)
   + Window, F11 (full screeen), keyboard and mouse events
-  + 연습1 : Draw Lines
+  + __연습1 : Draw Lines__
 * 02 KhuGle(Game Layout)
   + Scene, layer, sprite (rectangle, ellipse), static move
-  + 연습2 : Obejct Movements
+  + __연습2 : Obejct Movements__
 * 03 KhuGle(Collision and Physics)
   + Circle-to-circle collision, circle-to-line collision, gravity
-  + 실습1 : Pong Game 
+  + __실습1 : Pong Game__
 * 04 KhuGle(3D Renderging)
   + Projection and view matrices, 3D object rendering
 * 05 KhuGle(Sound Processing)
