@@ -32,7 +32,7 @@ CKhuGleSprite::CKhuGleSprite(int nType, int nCollisionType, CKgLine lnLine, KgCo
 	else
 	{
 		m_rtBoundBox = CKgRect(lnLine.Start.X, lnLine.Start.Y, lnLine.End.X, lnLine.End.Y);
-		m_lnLine = CKgLine(CKgPoint(lnLine.Start.X, lnLine.End.Y), CKgPoint(lnLine.End.X, lnLine.End.Y));
+		m_lnLine = lnLine;
 	}
 	
 

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <vector>
+#include <algorithm>
 
 class CKhuGleComponent
 {
@@ -17,7 +18,7 @@ public:
 	virtual ~CKhuGleComponent();
 
 	void AddChild(CKhuGleComponent *pChild);
-
+	void DeleteChild(CKhuGleComponent* pChild);
 	virtual void Render() = 0;
 };
 

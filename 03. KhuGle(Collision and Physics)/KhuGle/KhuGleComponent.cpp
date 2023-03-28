@@ -34,3 +34,10 @@ void CKhuGleComponent::AddChild(CKhuGleComponent *pChild)
 
 	m_Children.push_back(pChild);
 }
+
+void CKhuGleComponent::DeleteChild(CKhuGleComponent* pChild)
+{
+	pChild->m_Parent = this;
+
+	m_Children.erase(remove(m_Children.begin(), m_Children.end(), pChild), m_Children.end());
+}

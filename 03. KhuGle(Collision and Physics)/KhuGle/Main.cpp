@@ -39,12 +39,6 @@ public:
 	CKgPoint m_LButtonStart, m_LButtonEnd;
 	int m_nLButtonStatus;
 
-	// 가상의 Balls를 저장하기 위한 벡터 컨테이너
-	//std::vector<CKhuGleSprite*> VirtualBalls;
-	//std::vector<CKhuGleSprite*> CollsionBricks;
-
-
-
 };
 
 CCollision::CCollision(int nW, int nH) : CKhuGleWin(nW, nH) 
@@ -60,8 +54,6 @@ CCollision::CCollision(int nW, int nH) : CKhuGleWin(nW, nH)
 
 	m_pScene->AddChild(m_pGameLayer);
 
-	//m_pCircle2 = new CKhuGleSprite(GP_STYPE_ELLIPSE, GP_CTYPE_DYNAMIC, CKgLine(CKgPoint(50, 50), CKgPoint(90, 90)), 
-		//KG_COLOR_24_RGB(255, 0, 0), false, 100);
 	m_pCircle2 = new CKhuGleSprite(GP_STYPE_ELLIPSE, GP_CTYPE_DYNAMIC, CKgLine(CKgPoint(50, 300), CKgPoint(90, 340)),
 		KG_COLOR_24_RGB(255, 0, 0), false, 100);
 	m_pLeftLine = new CKhuGleSprite(GP_STYPE_LINE, GP_CTYPE_STATIC, CKgLine(CKgPoint(10, 10), CKgPoint(10, 450)),
@@ -71,15 +63,12 @@ CCollision::CCollision(int nW, int nH) : CKhuGleWin(nW, nH)
 	m_pUpLine = new CKhuGleSprite(GP_STYPE_LINE, GP_CTYPE_STATIC, CKgLine(CKgPoint(10, 10), CKgPoint(590, 10)),
 		KG_COLOR_24_RGB(255, 255, 0), false, 0);
 	m_pDownLine = new CKhuGleSprite(GP_STYPE_LINE, GP_CTYPE_STATIC, CKgLine(CKgPoint(10, 400), CKgPoint(590, 400)),
-		KG_COLOR_24_RGB(255, 255, 0), false, 0);
+		KG_COLOR_24_RGB(255, 0, 0), false, 0);
 
-	m_pBrick = new CKhuGleSprite(GP_STYPE_LINE, GP_CTYPE_STATIC, CKgLine(CKgPoint(100, 370), CKgPoint(250, 400)),
+	m_pBrick = new CKhuGleSprite(GP_STYPE_RECT, GP_CTYPE_DYNAMIC, CKgLine(CKgPoint(100, 370), CKgPoint(250, 400)),
 		KG_COLOR_24_RGB(0, 255, 0), false, 10);
 	
 
-	
-	
-	
 	for (int i = 0; i < 5; i++)
 	{
 		int y = 30;
@@ -91,11 +80,8 @@ CCollision::CCollision(int nW, int nH) : CKhuGleWin(nW, nH)
 
 			m_pGameLayer->AddChild(m_pNewBricks[j]);
 		}
-			
 	}
 	
-	
-
 	m_pGameLayer->AddChild(m_pCircle2);
 	m_pGameLayer->AddChild(m_pLeftLine);
 	m_pGameLayer->AddChild(m_pRightLine);
@@ -104,8 +90,6 @@ CCollision::CCollision(int nW, int nH) : CKhuGleWin(nW, nH)
 	m_pGameLayer->AddChild(m_pBrick);
 	
 
-
-	//m_pCircle1->m_Velocity = CKgVector2D(900, 50);
 	m_pCircle2->m_Velocity = CKgVector2D(-100, -300);
 
 	
@@ -131,11 +115,9 @@ void CCollision::Update()
 
 
 	if (m_bKeyPressed[VK_LEFT]) m_pBrick->MoveBy(-1, 0);
-	if (m_bKeyPressed[VK_UP]) m_pBrick->MoveBy(0, -1);
 	if (m_bKeyPressed[VK_RIGHT]) m_pBrick->MoveBy(1, 0);
-	if (m_bKeyPressed[VK_DOWN]) m_pBrick->MoveBy(0, 1);
 
-	CKhuGleSprite* DELETEBRICK = new CKhuGleSprite();
+	
 	for(auto &Layer : m_pScene->m_Children)
 	{
 		for(auto &Sprite : Layer->m_Children)
@@ -233,16 +215,21 @@ void CCollision::Update()
 					double Overlapped = CKgVector2D::abs(Normal) - Ball->m_Radius - Target->m_nWidth / 2;
 					if (Overlapped <= 0)
 					{
+						// Down Line
+						if (((CKhuGleSprite*)Target)->m_fgColor == KG_COLOR_24_RGB(255, 0, 0))
+						{
+							m_pGameLayer->DeleteChild(Ball);
+
+						}
+
 						CKhuGleSprite* VirtualBall = new CKhuGleSprite(GP_STYPE_ELLIPSE, GP_CTYPE_STATIC,
 							CKgLine((int)(ProjectionPoint.x - Target->m_nWidth / 2.), (int)(ProjectionPoint.y - Target->m_nWidth / 2.),
 								(int)(ProjectionPoint.x + Target->m_nWidth / 2.), (int)(ProjectionPoint.y + Target->m_nWidth / 2.)),
 							KG_COLOR_24_RGB(255, 0, 0), false, 100);
 						VirtualBall->m_Mass = 1E05;
-						VirtualBall->m_Velocity.y = -Ball->m_Velocity.y / 20.0f;
+						VirtualBall->m_Velocity.y = -Ball->m_Velocity.y / 16.0f;
 
 						VirtualBalls.push_back(VirtualBall);
-						std::cout << "VirtualBalls 개수 : " << VirtualBalls.size() <<'\n';
-
 						CollisionPairs.push_back({ Ball, VirtualBall });
 
 						if (CKgVector2D::abs(Normal) == 0)
@@ -260,15 +247,22 @@ void CCollision::Update()
 
 						Ball->m_bCollided = true;
 						Target->m_bCollided = true;
-
-
 					}
 				}	
 				
 				
 				if (((CKhuGleSprite*)Target)->m_nType == GP_STYPE_RECT)
 				{
-					Target->m_lnLine.Start.Y = Target->m_lnLine.End.Y;
+
+					if (((CKhuGleSprite*)Target)->m_fgColor == KG_COLOR_24_RGB(0, 255, 0))
+					{
+						Target->m_lnLine.End.X = Target->m_rtBoundBox.Right;
+						Target->m_lnLine.Start.X = Target->m_rtBoundBox.Left;
+						Target->m_lnLine.End.Y = Target->m_rtBoundBox.Top;
+						Target->m_lnLine.Start.Y = Target->m_rtBoundBox.Top;
+					}
+					else if(((CKhuGleSprite*)Target)->m_fgColor == KG_COLOR_24_RGB(255, 0, 255))
+						Target->m_lnLine.Start.Y = Target->m_lnLine.End.Y;
 
 					CKgVector2D LinePos = CKgVector2D(Target->m_lnLine.End.X, Target->m_lnLine.End.Y) - CKgVector2D(Target->m_lnLine.Start.X, Target->m_lnLine.Start.Y);
 
@@ -288,7 +282,7 @@ void CCollision::Update()
 								(int)(ProjectionPoint.x + Target->m_nWidth / 2.), (int)(ProjectionPoint.y + Target->m_nWidth / 2.)),
 							KG_COLOR_24_RGB(255, 0, 0), false, 100);
 						VirtualBall->m_Mass = 1E05;
-						VirtualBall->m_Velocity.y = -Ball->m_Velocity.y / 20.0f;
+						VirtualBall->m_Velocity.y = -Ball->m_Velocity.y / 16.0f;
 
 						VirtualBalls.push_back(VirtualBall);
 						CollisionPairs.push_back({ Ball, VirtualBall });
@@ -301,6 +295,7 @@ void CCollision::Update()
 							if (Target->m_nCollisionType != GP_CTYPE_STATIC)
 								Target->MoveBy(rand() % 3 - 1, rand() % 3 - 1);
 						}
+						
 						else
 						{
 							if (Ball->m_nCollisionType != GP_CTYPE_STATIC)
@@ -309,8 +304,9 @@ void CCollision::Update()
 
 						Ball->m_bCollided = true;
 						Target->m_bCollided = true;
-						CKhuGleSprite* BRICK = (CKhuGleSprite*)Target;
-						CollsionBricks.push_back(BRICK);
+						if(((CKhuGleSprite*)Target)->m_fgColor == KG_COLOR_24_RGB(255, 0, 255))
+							CollsionBricks.push_back(Target);
+
 
 					}
 				}
@@ -343,22 +339,13 @@ void CCollision::Update()
 		
 		
 		for (auto& Brick : CollsionBricks)
-			delete Brick;
+			m_pGameLayer->DeleteChild(Brick);
 		
 	}
 
 
 	m_pScene->Render(); 
 
-	/*
-	for (int i = 0; i < 50; i++)
-	{
-		if (m_pNewBricks[i] == DELETEBRICK)
-		{
-			delete m_pNewBricks[i];
-		}
-	}
-	*/
 	
 	DrawSceneTextPos("Collision and Physics", CKgPoint(0, 0));
 
