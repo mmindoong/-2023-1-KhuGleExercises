@@ -29,8 +29,12 @@ CKhuGleSprite::CKhuGleSprite(int nType, int nCollisionType, CKgLine lnLine, KgCo
 
 	if(m_nType == GP_STYPE_LINE)
 		m_lnLine = lnLine;
-	else 
+	else
+	{
 		m_rtBoundBox = CKgRect(lnLine.Start.X, lnLine.Start.Y, lnLine.End.X, lnLine.End.Y);
+		m_lnLine = CKgLine(CKgPoint(lnLine.Start.X, lnLine.End.Y), CKgPoint(lnLine.End.X, lnLine.End.Y));
+	}
+	
 
 	m_Center.x = (lnLine.Start.X + lnLine.End.X)/2.;
 	m_Center.y = (lnLine.Start.Y + lnLine.End.Y)/2.;
