@@ -24,7 +24,8 @@ public:
 	CKhuGleLayer *m_pGameLayer;
 
 	CKhuGleSprite* m_pBrick;
-	CKhuGleSprite *m_pCircle2;
+	CKhuGleSprite *m_pCircle2[3];
+
 	CKhuGleSprite *m_pLeftLine;
 	CKhuGleSprite* m_pRightLine;
 	CKhuGleSprite* m_pUpLine;
@@ -38,6 +39,7 @@ public:
 
 	CKgPoint m_LButtonStart, m_LButtonEnd;
 	int m_nLButtonStatus;
+	int HealthCount = 0;
 
 };
 
@@ -54,8 +56,14 @@ CCollision::CCollision(int nW, int nH) : CKhuGleWin(nW, nH)
 
 	m_pScene->AddChild(m_pGameLayer);
 
-	m_pCircle2 = new CKhuGleSprite(GP_STYPE_ELLIPSE, GP_CTYPE_DYNAMIC, CKgLine(CKgPoint(50, 300), CKgPoint(90, 340)),
+	m_pCircle2[0] = new CKhuGleSprite(GP_STYPE_ELLIPSE, GP_CTYPE_DYNAMIC, CKgLine(CKgPoint(50, 300), CKgPoint(90, 340)),
 		KG_COLOR_24_RGB(255, 0, 0), false, 100);
+	m_pCircle2[1] = new CKhuGleSprite(GP_STYPE_ELLIPSE, GP_CTYPE_DYNAMIC, CKgLine(CKgPoint(50, 200), CKgPoint(90, 240)),
+		KG_COLOR_24_RGB(255, 255, 0), false, 100);
+	m_pCircle2[2] = new CKhuGleSprite(GP_STYPE_ELLIPSE, GP_CTYPE_DYNAMIC, CKgLine(CKgPoint(50, 200), CKgPoint(90, 240)),
+		KG_COLOR_24_RGB(255, 0, 255), false, 100);
+
+
 	m_pLeftLine = new CKhuGleSprite(GP_STYPE_LINE, GP_CTYPE_STATIC, CKgLine(CKgPoint(10, 10), CKgPoint(10, 450)),
 		KG_COLOR_24_RGB(255, 255, 0), false, 0);
 	m_pRightLine = new CKhuGleSprite(GP_STYPE_LINE, GP_CTYPE_STATIC, CKgLine(CKgPoint(590, 10), CKgPoint(590, 450)),
@@ -82,7 +90,7 @@ CCollision::CCollision(int nW, int nH) : CKhuGleWin(nW, nH)
 		}
 	}
 	
-	m_pGameLayer->AddChild(m_pCircle2);
+	m_pGameLayer->AddChild(m_pCircle2[0]);
 	m_pGameLayer->AddChild(m_pLeftLine);
 	m_pGameLayer->AddChild(m_pRightLine);
 	m_pGameLayer->AddChild(m_pUpLine);
@@ -90,9 +98,9 @@ CCollision::CCollision(int nW, int nH) : CKhuGleWin(nW, nH)
 	m_pGameLayer->AddChild(m_pBrick);
 	
 
-	m_pCircle2->m_Velocity = CKgVector2D(-100, -300);
-
-	
+	m_pCircle2[0]->m_Velocity = CKgVector2D(-100, -300);
+	m_pCircle2[1]->m_Velocity = CKgVector2D(-100, -300);
+	m_pCircle2[2]->m_Velocity = CKgVector2D(-100, -310);
 }
 
 void CCollision::Update()
@@ -130,9 +138,9 @@ void CCollision::Update()
 			if(Ball->m_nType == GP_STYPE_RECT) continue;
 			if(Ball->m_nType != GP_STYPE_ELLIPSE) continue;
 			if(Ball->m_nCollisionType != GP_CTYPE_DYNAMIC) continue;
-
-			Ball->m_Acceleration.x = m_Gravity.x - Ball->m_Velocity.x * m_AirResistance.x;			
-			Ball->m_Acceleration.y = m_Gravity.y - Ball->m_Velocity.y * m_AirResistance.y;
+			
+			Ball->m_Acceleration.x = Ball->m_Velocity.x * m_AirResistance.x; 
+			Ball->m_Acceleration.y = Ball->m_Velocity.y * m_AirResistance.x;
 
 			Ball->m_Velocity.x += Ball->m_Acceleration.x * m_ElapsedTime;
 			Ball->m_Velocity.y += Ball->m_Acceleration.y * m_ElapsedTime;
@@ -216,19 +224,35 @@ void CCollision::Update()
 					if (Overlapped <= 0)
 					{
 						// Down Line
-						if (((CKhuGleSprite*)Target)->m_fgColor == KG_COLOR_24_RGB(255, 0, 0))
+						if (((CKhuGleSprite*)Target)->m_fgColor == KG_COLOR_24_RGB(255, 0, 0) && HealthCount ==0)
 						{
 							m_pGameLayer->DeleteChild(Ball);
 
+							m_pGameLayer->AddChild(m_pCircle2[1]);
+							HealthCount += 1;
 						}
+						else if (((CKhuGleSprite*)Target)->m_fgColor == KG_COLOR_24_RGB(255, 0, 0) && HealthCount == 1)
+						{
+							m_pGameLayer->DeleteChild(Ball);
+
+							m_pGameLayer->AddChild(m_pCircle2[2]);
+							HealthCount += 1;
+						}
+						else if (((CKhuGleSprite*)Target)->m_fgColor == KG_COLOR_24_RGB(255, 0, 0) && HealthCount == 2)
+						{
+							m_pGameLayer->DeleteChild(Ball);
+							HealthCount += 1;
+						}
+
 
 						CKhuGleSprite* VirtualBall = new CKhuGleSprite(GP_STYPE_ELLIPSE, GP_CTYPE_STATIC,
 							CKgLine((int)(ProjectionPoint.x - Target->m_nWidth / 2.), (int)(ProjectionPoint.y - Target->m_nWidth / 2.),
 								(int)(ProjectionPoint.x + Target->m_nWidth / 2.), (int)(ProjectionPoint.y + Target->m_nWidth / 2.)),
 							KG_COLOR_24_RGB(255, 0, 0), false, 100);
-						VirtualBall->m_Mass = 1E05;
-						VirtualBall->m_Velocity.y = -Ball->m_Velocity.y / 16.0f;
-
+						VirtualBall->m_Mass = Ball->m_Mass;
+						VirtualBall->m_Velocity.x = -Ball->m_Velocity.x;
+						VirtualBall->m_Velocity.y = -Ball->m_Velocity.y;
+						
 						VirtualBalls.push_back(VirtualBall);
 						CollisionPairs.push_back({ Ball, VirtualBall });
 
@@ -253,7 +277,6 @@ void CCollision::Update()
 				
 				if (((CKhuGleSprite*)Target)->m_nType == GP_STYPE_RECT)
 				{
-
 					if (((CKhuGleSprite*)Target)->m_fgColor == KG_COLOR_24_RGB(0, 255, 0))
 					{
 						Target->m_lnLine.End.X = Target->m_rtBoundBox.Right;
@@ -281,8 +304,22 @@ void CCollision::Update()
 							CKgLine((int)(ProjectionPoint.x - Target->m_nWidth / 2.), (int)(ProjectionPoint.y - Target->m_nWidth / 2.),
 								(int)(ProjectionPoint.x + Target->m_nWidth / 2.), (int)(ProjectionPoint.y + Target->m_nWidth / 2.)),
 							KG_COLOR_24_RGB(255, 0, 0), false, 100);
-						VirtualBall->m_Mass = 1E05;
-						VirtualBall->m_Velocity.y = -Ball->m_Velocity.y / 16.0f;
+						VirtualBall->m_Mass = Ball->m_Mass; //1E50
+						VirtualBall->m_Velocity.x = -Ball->m_Velocity.x;
+						VirtualBall->m_Velocity.y = -Ball->m_Velocity.y;
+						/*
+						if (((CKhuGleSprite*)Target)->m_fgColor == KG_COLOR_24_RGB(0, 255, 0))
+						{
+							VirtualBall->m_Velocity.x = -15.f;
+							VirtualBall->m_Velocity.y = -15.f;
+						}
+						else if (((CKhuGleSprite*)Target)->m_fgColor == KG_COLOR_24_RGB(255, 0, 255))
+						{
+							VirtualBall->m_Velocity.x = 15.f;
+							VirtualBall->m_Velocity.y = 15.f;
+						}
+						*/
+						
 
 						VirtualBalls.push_back(VirtualBall);
 						CollisionPairs.push_back({ Ball, VirtualBall });
