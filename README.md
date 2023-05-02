@@ -21,10 +21,13 @@
   + __실습1 : Pong Game__
 * 04 KhuGle(3D Renderging)
   + Projection and view matrices, 3D object rendering
+  + __연습3 : Model matrix__
 * 05 KhuGle(Sound Processing)
   + FFT, spectrogram, FIR/IIR filters
+  + __연습4 : Cepstrum, sound generation__
 * 06 KhuGle(Image Processing)
   + Convolution, DCT, image compression
+  + __실습2 : YCbCr Image Compression__
 * 07 KhuGle(Correlation and Clustering)
   + Pearson correlation, similarity, k-means
 * 08 KhuGle(Regression)
