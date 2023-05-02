@@ -5,6 +5,8 @@
 #include "KhuGleWin.h"
 #include "KhuGleSignal.h"
 #include <iostream>
+#include <algorithm>
+#include <string>
 
 #pragma warning(disable:4996)
 
@@ -19,6 +21,31 @@
 #endif
 #endif  // _DEBUG
 
+constexpr const unsigned char QuantizationTableY[8][8] =
+{
+	{ 16, 11, 10, 16,  24,  40,  51,  61, },
+	{ 12, 12, 14, 19,  26,  58,  60,  66, },
+	{ 14, 13, 16, 24,  40,  57,  69,  57, },
+	{ 14, 17, 22, 29,  51,  87,  80,  62, },
+	{ 18, 22, 37, 56,  68, 109, 103,  77, },
+	{ 24, 36, 55, 64,  81, 104, 113,  92, },
+	{ 49, 64, 78, 87, 103, 121, 120, 101, },
+	{ 72, 92, 95, 98, 112, 100, 103,  99, },
+};
+
+constexpr const unsigned char QuantizationTableCbCr[8][8] =
+{
+	{ 17, 18, 24, 47, 99, 99, 99, 99, },
+	{ 18, 21, 26, 66, 99, 99, 99, 99, },
+	{ 24, 26, 56, 99, 99, 99, 99, 99, },
+	{ 47, 66, 99, 99, 99, 99, 99, 99, },
+	{ 99, 99, 99, 99, 99, 99, 99, 99, },
+	{ 99, 99, 99, 99, 99, 99, 99, 99, },
+	{ 99, 99, 99, 99, 99, 99, 99, 99, },
+	{ 99, 99, 99, 99, 99, 99, 99, 99, },
+};
+
+
 class CKhuGleImageLayer : public CKhuGleLayer {
 public:
 	CKhuGleSignal m_Image, m_ImageOut;
@@ -26,6 +53,7 @@ public:
 	CKhuGleImageLayer(int nW, int nH, KgColor24 bgColor, CKgPoint ptPos = CKgPoint(0, 0))
 		: CKhuGleLayer(nW, nH, bgColor, ptPos) {}
 	void DrawBackgroundImage();
+	
 };
 
 void CKhuGleImageLayer::DrawBackgroundImage()
@@ -83,6 +111,317 @@ CImageProcessing::CImageProcessing(int nW, int nH, char *ImagePath)
 
 void CImageProcessing::Update()
 {
+	BOOL b_isQuantized = FALSE;
+
+	if (m_bKeyPressed['1'])
+	{
+		double** InputR = dmatrix(m_pImageLayer->m_Image.m_nH, m_pImageLayer->m_Image.m_nW);
+		double** InputG = dmatrix(m_pImageLayer->m_Image.m_nH, m_pImageLayer->m_Image.m_nW);
+		double** InputB = dmatrix(m_pImageLayer->m_Image.m_nH, m_pImageLayer->m_Image.m_nW);
+
+		double** Y = dmatrix(m_pImageLayer->m_Image.m_nH, m_pImageLayer->m_Image.m_nW);
+		double** Cb = dmatrix(m_pImageLayer->m_Image.m_nH / 2, m_pImageLayer->m_Image.m_nW / 2);
+		double** Cr = dmatrix(m_pImageLayer->m_Image.m_nH / 2, m_pImageLayer->m_Image.m_nW / 2);
+
+		double** OutY = dmatrix(m_pImageLayer->m_Image.m_nH, m_pImageLayer->m_Image.m_nW);
+		double** OutCb = dmatrix(m_pImageLayer->m_Image.m_nH / 2, m_pImageLayer->m_Image.m_nW / 2);
+		double** OutCr = dmatrix(m_pImageLayer->m_Image.m_nH / 2, m_pImageLayer->m_Image.m_nW / 2);
+
+		int QuantizationY[8][8] = { 0 };
+		int QuantizationCb[8][8] = { 0 };
+		int QuantizationCr[8][8] = { 0 };
+
+		// Initialize the RGB input
+		for (int y = 0; y < m_pImageLayer->m_Image.m_nH; ++y)
+		{
+			for (int x = 0; x < m_pImageLayer->m_Image.m_nW; ++x)
+			{
+				InputR[y][x] = m_pImageLayer->m_Image.m_Red[y][x];
+				InputG[y][x] = m_pImageLayer->m_Image.m_Green[y][x];
+				InputB[y][x] = m_pImageLayer->m_Image.m_Blue[y][x];
+			}
+		}
+
+		// RGB to YCbCr
+		for (int y = 0; y < m_pImageLayer->m_Image.m_nH; ++y)
+		{
+			for (int x = 0; x < m_pImageLayer->m_Image.m_nW; ++x)
+			{
+				Y[y][x] = 0.299 * InputR[y][x] + 0.587 * InputG[y][x] + 0.114 * InputB[y][x] + 0.0;
+			}
+		}
+		double tempCb = 0.0;
+		double tempCr = 0.0;
+		for (int y = 0; y < m_pImageLayer->m_Image.m_nH; y += 2)
+		{
+			for (int x = 0; x < m_pImageLayer->m_Image.m_nW; x += 2)
+			{
+				for (int i = 0; i < 2; ++i)
+				{
+					for (int j = 0; j < 2; ++j)
+					{
+						tempCb += -0.169 * InputR[y + i][x + j] + -0.331 * InputG[y + i][x + j] + 0.499 * InputB[y + i][x + j] + 128.0;
+						tempCr += 0.499 * InputR[y + i][x + j] + -0.418 * InputG[y + i][x + j] + -0.0813 * InputB[y + i][x + j] + 128.0;
+					}
+				}
+				Cb[y / 2][x / 2] = tempCb / 4;
+				Cr[y / 2][x / 2] = tempCr / 4;
+				tempCb = 0.0;
+				tempCr = 0.0;
+			}
+		}
+		std::cout << "Convert RGB->YCbCr" << std::endl;
+
+		// Block DCT -> 8 by 8
+		DCT2D(Y, OutY, m_pImageLayer->m_Image.m_nW, m_pImageLayer->m_Image.m_nH, 8);
+		DCT2D(Cb, OutCb, m_pImageLayer->m_Image.m_nW / 2, m_pImageLayer->m_Image.m_nH / 2, 8);
+		DCT2D(Cr, OutCr, m_pImageLayer->m_Image.m_nW / 2, m_pImageLayer->m_Image.m_nH / 2, 8);
+		std::cout << "Block DCT 8x8" << std::endl;
+
+		
+		// Quantization
+		for (int i = 0; i < 8; ++i)
+		{
+			for (int j = 0; j < 8; ++j)
+			{
+				QuantizationY[i][j] = (int)(OutY[i][j] / QuantizationTableY[i][j]);
+				QuantizationCb[i][j] = (int)(OutCb[i][j] / QuantizationTableCbCr[i][j]);
+				QuantizationCr[i][j] = (int)(OutCr[i][j] / QuantizationTableCbCr[i][j]);
+			}
+		}
+		std::cout << "Quantization" << std::endl;
+		
+		int CountZeroY = 0;
+		int CountZeroCb = 0;
+		int CountZeroCr = 0;
+
+		std::vector<int> HistogramY;
+		std::vector<int> HistogramCountY;
+		std::vector<float> HistogramProbabilityY;
+		std::vector<int> HistogramCb;
+		std::vector<int> HistogramCountCb;
+		std::vector<float> HistogramProbabilityCb;
+		std::vector<int> HistogramCr;
+		std::vector<int> HistogramCountCr;
+		std::vector<float> HistogramProbabilityCr;
+
+		int EntropyY = 0;
+		int EntropyCb = 0;
+		int EntropyCr = 0;
+	
+		std::cout << "==========(Y) Channel Quantization===========" << std::endl;
+		for (int i = 0; i < 8; ++i)
+		{
+			for (int j = 0; j < 8; ++j)
+			{
+				if (QuantizationY[i][j] == 0)
+					CountZeroY++;
+				else if (QuantizationY[i][j] != 0)
+				{
+					HistogramY.push_back(QuantizationY[i][j]);
+				}
+			}
+		}
+		std::cout << "1) Count Zero in Y Channel : " << CountZeroY << std::endl;
+		for (int i = 0; i < HistogramY.size(); i++)
+		{
+			int cnt = std::count(HistogramY.begin(), HistogramY.end(), HistogramY[i]);
+			HistogramCountY.push_back(cnt);
+		}
+
+		std::vector<int> Saved;
+		std::cout << "2) Count NonZero in Y Channel " << std::endl;
+		for (int i = 0; i < HistogramY.size(); i++)
+		{
+			int SaveCnt = std::count(Saved.begin(), Saved.end(), HistogramY[i]);
+			if (HistogramY[i] != 0 && SaveCnt == 0)
+			{
+				std::cout << "NonZero Histogram : " << HistogramY[i] << ", Count : " << HistogramCountY[i] << '\n';
+			}
+			Saved.push_back(HistogramY[i]);
+		}
+		
+		// Y Probability 
+		for (int i = 0; i < HistogramCountY.size(); i++)
+		{
+			std::cout << std::fixed;
+			std::cout.precision(2);
+			HistogramProbabilityY.push_back(HistogramCountY[i] / 64.0f);
+			
+		}
+		// Y Entropy Caculate - Non Zero
+		for (int i = 0; i < HistogramProbabilityY.size(); i++)
+		{
+			EntropyY += log(HistogramProbabilityY[i] * HistogramProbabilityY[i]);
+		}
+		// Y Entropy Caculate - Zero
+		EntropyY += log((CountZeroY / 64.0f) * (CountZeroY / 64.0f));
+		EntropyY = -EntropyY;
+		std::cout << "3) Entropy in Y Channel : " << EntropyY << std::endl << std::endl;
+
+		std::cout << "==========(Cb) Channel Quantization===========" << std::endl;
+		for (int i = 0; i < 8; ++i)
+		{
+			for (int j = 0; j < 8; ++j)
+			{
+				if (QuantizationCb[i][j] == 0)
+					CountZeroCb++;
+				else if (QuantizationCb[i][j] != 0)
+				{
+					HistogramCb.push_back(QuantizationCb[i][j]);
+				}
+			}
+		}
+		std::cout << "1) Count Zero in Cb Channel : " << CountZeroCb << std::endl;
+
+		for (int i = 0; i < HistogramCb.size(); i++)
+		{
+			int cnt = std::count(HistogramCb.begin(), HistogramCb.end(), HistogramCb[i]);
+			HistogramCountCb.push_back(cnt);
+		}
+
+		std::vector<int> Saved2;
+		std::cout << "2) Count NonZero in Cb Channel " << std::endl;
+		for (int i = 0; i < HistogramCb.size(); i++)
+		{
+			int SaveCnt = std::count(Saved2.begin(), Saved2.end(), HistogramCb[i]);
+			if (HistogramCb[i] != 0 && SaveCnt == 0)
+			{
+				std::cout << "NonZero Histogram : " << HistogramCb[i] << ", Count : " << HistogramCountCb[i] << '\n';
+			}
+			Saved2.push_back(HistogramCb[i]);
+		}
+		// Cb Probability
+		for (int i = 0; i < HistogramCountCb.size(); i++)
+		{
+			std::cout << std::fixed;
+			std::cout.precision(2);
+			HistogramProbabilityCb.push_back(HistogramCountCb[i] / 64.0f);
+
+		}
+		// Cb Entropy Caculate - Non Zero
+		for (int i = 0; i < HistogramProbabilityCb.size(); i++)
+		{
+			EntropyCb += log(HistogramProbabilityCb[i] * HistogramProbabilityCb[i]);
+		}
+		// Cb Entropy Caculate - Zero
+		EntropyCb += log((CountZeroCb / 64.0f) * (CountZeroCb / 64.0f));
+		EntropyCb = -EntropyCb;
+		std::cout << "3) Entropy in Cb Channel : " << EntropyCb << std::endl << std::endl;
+
+		std::cout << "==========(Cr) Channel Quantization===========" << std::endl;
+		for (int i = 0; i < 8; ++i)
+		{
+			for (int j = 0; j < 8; ++j)
+			{
+				if (QuantizationCr[i][j] == 0)
+					CountZeroCr++;
+				else if (QuantizationCr[i][j] != 0)
+				{
+					HistogramCr.push_back(QuantizationCr[i][j]);
+				}
+			}
+		}
+		std::cout << "1) Count Zero in Cr Channel : " << CountZeroCr << std::endl;
+
+		for (int i = 0; i < HistogramCr.size(); i++)
+		{
+			int cnt = std::count(HistogramCr.begin(), HistogramCr.end(), HistogramCr[i]);
+			HistogramCountCr.push_back(cnt);
+		}
+
+		std::vector<int> Saved3;
+		std::cout << "2) Count NonZero in Cr Channel " << std::endl;
+		for (int i = 0; i < HistogramCr.size(); i++)
+		{
+			int SaveCnt = std::count(Saved3.begin(), Saved3.end(), HistogramCr[i]);
+			if (HistogramCr[i] != 0 && SaveCnt == 0)
+			{
+				std::cout << "NonZero Histogram : " << HistogramCr[i] << ", Count : " << HistogramCountCr[i] << '\n';
+			}
+			Saved3.push_back(HistogramCr[i]);
+		}
+		// Cr Probability
+		for (int i = 0; i < HistogramCountCr.size(); i++)
+		{
+			std::cout << std::fixed;
+			std::cout.precision(2);
+			HistogramProbabilityCr.push_back(HistogramCountCr[i] / 64.0f);
+
+		}
+		// Cr Entropy Caculate - Non Zero
+		for (int i = 0; i < HistogramProbabilityCr.size(); i++)
+		{
+			EntropyCr += log(HistogramProbabilityCr[i] * HistogramProbabilityCr[i]);
+		}
+		// Cr Entropy Caculate - Zero
+		EntropyCr += log((CountZeroCr / 64.0f) * (CountZeroCr / 64.0f));
+		EntropyCr = -EntropyCr;
+		std::cout << "3) Entropy in Cr Channel : " << EntropyCr << std::endl << std::endl;
+	
+
+		
+		// Dequantization
+		for (int i = 0; i < 8; ++i)
+		{
+			for (int j = 0; j < 8; ++j)
+			{
+				OutY[i][j] = (double)QuantizationY[i][j] * QuantizationTableY[i][j];
+				OutCb[i][j] = (double)QuantizationCb[i][j] * QuantizationTableCbCr[i][j];
+				OutCr[i][j] = (double)QuantizationCr[i][j] * QuantizationTableCbCr[i][j];
+			}
+		}
+		std::cout << "Dequantization" << std::endl;
+
+		
+		// IDCT
+		IDCT2D(OutY, Y, m_pImageLayer->m_Image.m_nW, m_pImageLayer->m_Image.m_nH, 8);
+		IDCT2D(OutCb, Cb, m_pImageLayer->m_Image.m_nW / 2, m_pImageLayer->m_Image.m_nH / 2, 8);
+		IDCT2D(OutCr, Cr, m_pImageLayer->m_Image.m_nW / 2, m_pImageLayer->m_Image.m_nH / 2, 8);
+		std::cout << "IDCT" << std::endl;
+		
+
+		// YCbCr to RGB
+		for (int y = 0; y < m_pImageLayer->m_Image.m_nH; ++y)
+		{
+			for (int x = 0; x < m_pImageLayer->m_Image.m_nW; ++x)
+			{
+				m_pImageLayer->m_ImageOut.m_Red[y][x] = std::clamp(Y[y][x] + 1.402 * (Cr[y / 2][x / 2] - 128), 0.0, 255.0);
+				m_pImageLayer->m_ImageOut.m_Green[y][x] = std::clamp(Y[y][x] - 0.344 * (Cb[y / 2][x / 2] - 128) - 0.714 * (Cr[y / 2][x / 2] - 128), 0.0, 255.0);
+				m_pImageLayer->m_ImageOut.m_Blue[y][x] = std::clamp(Y[y][x] + 1.772 * (Cb[y / 2][x / 2] - 128), 0.0, 255.0);
+			}
+		}
+		std::cout << "Convert YCbCr->RGB" << std::endl;
+
+		// Draw
+		m_pImageLayer->DrawBackgroundImage();
+
+		// Print PSNR
+		double Psnr = GetPsnr(m_pImageLayer->m_Image.m_Red, m_pImageLayer->m_Image.m_Green, m_pImageLayer->m_Image.m_Blue,
+			m_pImageLayer->m_ImageOut.m_Red, m_pImageLayer->m_ImageOut.m_Green, m_pImageLayer->m_ImageOut.m_Blue,
+			m_pImageLayer->m_Image.m_nW, m_pImageLayer->m_Image.m_nH);
+
+		std::cout << "PSNR: " << Psnr << '\n' << std::endl;
+
+		// Release memory
+		free_dmatrix(InputR, m_pImageLayer->m_Image.m_nH, m_pImageLayer->m_Image.m_nW);
+		free_dmatrix(InputG, m_pImageLayer->m_Image.m_nH, m_pImageLayer->m_Image.m_nW);
+		free_dmatrix(InputB, m_pImageLayer->m_Image.m_nH, m_pImageLayer->m_Image.m_nW);
+
+		free_dmatrix(Y, m_pImageLayer->m_Image.m_nH, m_pImageLayer->m_Image.m_nW);
+		free_dmatrix(Cb, m_pImageLayer->m_Image.m_nH / 2, m_pImageLayer->m_Image.m_nW / 2);
+		free_dmatrix(Cr, m_pImageLayer->m_Image.m_nH / 2, m_pImageLayer->m_Image.m_nW / 2);
+
+		free_dmatrix(OutY, m_pImageLayer->m_Image.m_nH, m_pImageLayer->m_Image.m_nW);
+		free_dmatrix(OutCb, m_pImageLayer->m_Image.m_nH / 2, m_pImageLayer->m_Image.m_nW / 2);
+		free_dmatrix(OutCr, m_pImageLayer->m_Image.m_nH / 2, m_pImageLayer->m_Image.m_nW / 2);
+
+		m_bKeyPressed['1'] = false;
+	
+	}
+
+
+
 	if(m_bKeyPressed['D'] || m_bKeyPressed['I'] || m_bKeyPressed['C']
 		|| m_bKeyPressed['E'] || m_bKeyPressed['M'])
 	{
@@ -253,12 +592,22 @@ void CImageProcessing::Update()
 			for(int y = 0 ; y < m_pImageLayer->m_ImageOut.m_nH ; ++y)
 				for(int x = 0 ; x < m_pImageLayer->m_ImageOut.m_nW ; ++x)
 				{
+					/*
+					 //Normalization
 					if(MaxR == MinR) m_pImageLayer->m_ImageOut.m_Red[y][x] = 0;
 					else m_pImageLayer->m_ImageOut.m_Red[y][x] = (int)((InputR[y][x]-MinR)*255/(MaxR-MinR));
 					if(MaxG == MinG) m_pImageLayer->m_ImageOut.m_Green[y][x] = 0;
 					else m_pImageLayer->m_ImageOut.m_Green[y][x] = (int)((InputG[y][x]-MinG)*255/(MaxG-MinG));
 					if(MaxB == MinB) m_pImageLayer->m_ImageOut.m_Blue[y][x] = 0;
 					else m_pImageLayer->m_ImageOut.m_Blue[y][x] = (int)((InputB[y][x]-MinB)*255/(MaxB-MinB));
+					*/
+					
+					
+					// Not Normalization
+					m_pImageLayer->m_ImageOut.m_Red[y][x] = (std::max)((std::min)((int)(InputR[y][x] + 0.5), 255), 0);
+					m_pImageLayer->m_ImageOut.m_Green[y][x] = (std::max)((std::min)((int)(InputG[y][x] + 0.5), 255), 0);
+					m_pImageLayer->m_ImageOut.m_Blue[y][x] = (std::max)((std::min)((int)(InputB[y][x] + 0.5), 255), 0);
+					
 				}
 		}
 
@@ -311,8 +660,13 @@ int main()
 	if(LastBackSlash >= 0)
 		ExePath[LastBackSlash] = '\0';
 
-	sprintf(ImagePath, "%s\\%s", ExePath, "couple.bmp");
+	// Image File Load
+	char ImageFile[MAX_PATH];
+	std::cout << "Enter the path of the image: ";
+	std::cin >> ImageFile;
+	sprintf(ImagePath, "%s\\%s", ExePath, ImageFile);
 
+	
 	CImageProcessing *pImageProcessing = new CImageProcessing(640, 480, ImagePath);
 	KhuGleWinInit(pImageProcessing);
 
