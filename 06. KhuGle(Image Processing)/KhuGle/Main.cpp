@@ -7,6 +7,8 @@
 #include <iostream>
 #include <algorithm>
 #include <string>
+#include<iostream>
+#include<fstream>
 
 #pragma warning(disable:4996)
 
@@ -65,7 +67,7 @@ void CKhuGleImageLayer::DrawBackgroundImage()
 			m_ImageBgG[y][x] = KgGetGreen(m_bgColor);
 			m_ImageBgB[y][x] = KgGetBlue(m_bgColor);
 		}
-
+	// Original Image
 	if(m_Image.m_Red && m_Image.m_Green && m_Image.m_Blue)
 	{
 		for(int y = 0 ; y < m_Image.m_nH && y < m_nH ; ++y)
@@ -76,7 +78,7 @@ void CKhuGleImageLayer::DrawBackgroundImage()
 				m_ImageBgB[y][x] = m_Image.m_Blue[y][x];
 			}
 	}
-
+	// Output Image
 	if(m_ImageOut.m_Red && m_ImageOut.m_Green && m_ImageOut.m_Blue)
 	{
 		int OffsetX = 300, OffsetY = 0;
@@ -208,7 +210,33 @@ void CImageProcessing::Update()
 		int EntropyY = 0;
 		int EntropyCb = 0;
 		int EntropyCr = 0;
-	
+		
+		// Channel Histogram File
+		std::ofstream writeFile; std::ofstream writeFile2; std::ofstream writeFile3;
+		std::string str; std::string str2; std::string str3;
+		writeFile.open("YChannel.txt");
+		writeFile2.open("CbChannel.txt");
+		writeFile3.open("CrChannel.txt");
+		for (int i = 0; i < 8; ++i)
+		{
+			for (int j = 0; j < 8; ++j)
+			{
+				str += std::to_string(QuantizationY[i][j]) + " ";
+				str2 += std::to_string(QuantizationCb[i][j]) + " ";
+				str3 += std::to_string(QuantizationCr[i][j]) + " ";
+			}
+			str += '\n';
+			str2 += '\n';
+			str3 += '\n';
+		}
+		writeFile.write(str.c_str(), str.size());
+		writeFile2.write(str2.c_str(), str2.size());
+		writeFile3.write(str3.c_str(), str3.size());
+
+		writeFile.close();
+		writeFile2.close();
+		writeFile3.close();
+
 		std::cout << "==========(Y) Channel Quantization===========" << std::endl;
 		for (int i = 0; i < 8; ++i)
 		{
@@ -359,8 +387,7 @@ void CImageProcessing::Update()
 		EntropyCr = -EntropyCr;
 		std::cout << "3) Entropy in Cr Channel : " << EntropyCr << std::endl << std::endl;
 	
-
-		
+		double MaxY, MaxCb, MaxCr, MinY, MinCb, MinCr;
 		// Dequantization
 		for (int i = 0; i < 8; ++i)
 		{
@@ -373,14 +400,12 @@ void CImageProcessing::Update()
 		}
 		std::cout << "Dequantization" << std::endl;
 
-		
 		// IDCT
 		IDCT2D(OutY, Y, m_pImageLayer->m_Image.m_nW, m_pImageLayer->m_Image.m_nH, 8);
 		IDCT2D(OutCb, Cb, m_pImageLayer->m_Image.m_nW / 2, m_pImageLayer->m_Image.m_nH / 2, 8);
 		IDCT2D(OutCr, Cr, m_pImageLayer->m_Image.m_nW / 2, m_pImageLayer->m_Image.m_nH / 2, 8);
 		std::cout << "IDCT" << std::endl;
 		
-
 		// YCbCr to RGB
 		for (int y = 0; y < m_pImageLayer->m_Image.m_nH; ++y)
 		{
@@ -400,7 +425,7 @@ void CImageProcessing::Update()
 		double Psnr = GetPsnr(m_pImageLayer->m_Image.m_Red, m_pImageLayer->m_Image.m_Green, m_pImageLayer->m_Image.m_Blue,
 			m_pImageLayer->m_ImageOut.m_Red, m_pImageLayer->m_ImageOut.m_Green, m_pImageLayer->m_ImageOut.m_Blue,
 			m_pImageLayer->m_Image.m_nW, m_pImageLayer->m_Image.m_nH);
-
+			
 		std::cout << "PSNR: " << Psnr << '\n' << std::endl;
 
 		// Release memory
@@ -430,6 +455,7 @@ void CImageProcessing::Update()
 		bool bEdge = m_bKeyPressed['E'];
 		bool bMean = m_bKeyPressed['M'];
 
+		// 영상 처리를 위한 RGB 각각을 저장하기 위한 Matrix 생성
 		double **InputR = dmatrix(m_pImageLayer->m_Image.m_nH, m_pImageLayer->m_Image.m_nW);
 		double **InputG = dmatrix(m_pImageLayer->m_Image.m_nH, m_pImageLayer->m_Image.m_nW);
 		double **InputB = dmatrix(m_pImageLayer->m_Image.m_nH, m_pImageLayer->m_Image.m_nW);
@@ -438,6 +464,7 @@ void CImageProcessing::Update()
 		double **OutG = dmatrix(m_pImageLayer->m_Image.m_nH, m_pImageLayer->m_Image.m_nW);
 		double **OutB = dmatrix(m_pImageLayer->m_Image.m_nH, m_pImageLayer->m_Image.m_nW);
 
+
 		for(int y = 0 ; y < m_pImageLayer->m_Image.m_nH ; ++y)
 			for(int x = 0 ; x < m_pImageLayer->m_Image.m_nW ; ++x)
 			{
@@ -445,6 +472,7 @@ void CImageProcessing::Update()
 				InputG[y][x] = m_pImageLayer->m_Image.m_Green[y][x];
 				InputB[y][x] = m_pImageLayer->m_Image.m_Blue[y][x];
 			}
+
 
 		if(bEdge)
 		{
@@ -508,6 +536,7 @@ void CImageProcessing::Update()
 
 		if(!bInverse && ! bCompression)
 		{
+			
 			double MaxR, MaxG, MaxB, MinR, MinG, MinB;
 
 			for(int y = 0 ; y < m_pImageLayer->m_ImageOut.m_nH ; ++y)
@@ -541,6 +570,8 @@ void CImageProcessing::Update()
 					if(MaxB == MinB) m_pImageLayer->m_ImageOut.m_Blue[y][x] = 0;
 					else m_pImageLayer->m_ImageOut.m_Blue[y][x] = (int)((OutB[y][x]-MinB)*255/(MaxB-MinB));
 				}
+				
+				
 		}
 		else
 		{
@@ -567,7 +598,6 @@ void CImageProcessing::Update()
 			IDCT2D(OutB, InputB, m_pImageLayer->m_Image.m_nW, m_pImageLayer->m_Image.m_nH, 8);
 
 			double MaxR, MaxG, MaxB, MinR, MinG, MinB;
-
 			for(int y = 0 ; y < m_pImageLayer->m_ImageOut.m_nH ; ++y)
 				for(int x = 0 ; x < m_pImageLayer->m_ImageOut.m_nW ; ++x)
 				{
@@ -588,7 +618,8 @@ void CImageProcessing::Update()
 						if(InputB[y][x] < MinB) MinB = InputB[y][x];
 					}
 				}
-
+				
+			
 			for(int y = 0 ; y < m_pImageLayer->m_ImageOut.m_nH ; ++y)
 				for(int x = 0 ; x < m_pImageLayer->m_ImageOut.m_nW ; ++x)
 				{
@@ -602,13 +633,13 @@ void CImageProcessing::Update()
 					else m_pImageLayer->m_ImageOut.m_Blue[y][x] = (int)((InputB[y][x]-MinB)*255/(MaxB-MinB));
 					*/
 					
-					
 					// Not Normalization
 					m_pImageLayer->m_ImageOut.m_Red[y][x] = (std::max)((std::min)((int)(InputR[y][x] + 0.5), 255), 0);
 					m_pImageLayer->m_ImageOut.m_Green[y][x] = (std::max)((std::min)((int)(InputG[y][x] + 0.5), 255), 0);
 					m_pImageLayer->m_ImageOut.m_Blue[y][x] = (std::max)((std::min)((int)(InputB[y][x] + 0.5), 255), 0);
-					
 				}
+				
+			
 		}
 
 		if(bMean || bCompression || bInverse)

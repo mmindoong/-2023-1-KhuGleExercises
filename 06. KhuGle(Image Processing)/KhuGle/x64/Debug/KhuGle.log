@@ -1,30 +1,36 @@
 ﻿  Main.cpp
-E:\Github\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(228,12): warning C4244: 'initializing': conversion from '__int64' to 'int', possible loss of data
-E:\Github\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(236,16): warning C4244: 'initializing': conversion from '__int64' to 'int', possible loss of data
-E:\Github\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(255,72): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
-E:\Github\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(258,63): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
-E:\Github\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(279,12): warning C4244: 'initializing': conversion from '__int64' to 'int', possible loss of data
-E:\Github\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(287,16): warning C4244: 'initializing': conversion from '__int64' to 'int', possible loss of data
-E:\Github\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(305,75): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
-E:\Github\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(308,66): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
-E:\Github\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(329,12): warning C4244: 'initializing': conversion from '__int64' to 'int', possible loss of data
-E:\Github\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(337,16): warning C4244: 'initializing': conversion from '__int64' to 'int', possible loss of data
-E:\Github\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(355,75): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
-E:\Github\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(358,66): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
-E:\Github\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(389,55): warning C4244: '=': conversion from 'const _Ty' to 'unsigned char', possible loss of data
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(256,12): warning C4244: 'initializing': conversion from '__int64' to 'int', possible loss of data
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(264,16): warning C4244: 'initializing': conversion from '__int64' to 'int', possible loss of data
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(283,72): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(286,63): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(307,12): warning C4244: 'initializing': conversion from '__int64' to 'int', possible loss of data
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(315,16): warning C4244: 'initializing': conversion from '__int64' to 'int', possible loss of data
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(333,75): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(336,66): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(357,12): warning C4244: 'initializing': conversion from '__int64' to 'int', possible loss of data
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(365,16): warning C4244: 'initializing': conversion from '__int64' to 'int', possible loss of data
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(383,75): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(386,66): warning C4244: '+=': conversion from 'float' to 'int', possible loss of data
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(419,55): warning C4244: '=': conversion from 'const _Ty' to 'unsigned char', possible loss of data
           with
           [
               _Ty=double
           ]
-E:\Github\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(390,57): warning C4244: '=': conversion from 'const _Ty' to 'unsigned char', possible loss of data
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(420,57): warning C4244: '=': conversion from 'const _Ty' to 'unsigned char', possible loss of data
           with
           [
               _Ty=double
           ]
-E:\Github\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(391,56): warning C4244: '=': conversion from 'const _Ty' to 'unsigned char', possible loss of data
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(421,56): warning C4244: '=': conversion from 'const _Ty' to 'unsigned char', possible loss of data
           with
           [
               _Ty=double
           ]
-E:\Github\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(651,28): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-  KhuGle.vcxproj -> E:\Github\KhuGleExercises\06. KhuGle(Image Processing)\Run\KhuGle64D.exe
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(390,16): warning C4101: 'MaxCb': unreferenced local variable
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(390,36): warning C4101: 'MinCb': unreferenced local variable
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(390,43): warning C4101: 'MinCr': unreferenced local variable
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(390,10): warning C4101: 'MaxY': unreferenced local variable
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(390,23): warning C4101: 'MaxCr': unreferenced local variable
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(390,30): warning C4101: 'MinY': unreferenced local variable
+D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\KhuGle\Main.cpp(688,28): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  KhuGle.vcxproj -> D:\Documents\GitHub\KhuGleExercises\06. KhuGle(Image Processing)\Run\KhuGle64D.exe
